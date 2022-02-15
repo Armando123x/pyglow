@@ -1,0 +1,5 @@
+*.pyc
+mtime_table.pkl
+geophysical_indices.npy
+build/
+src/pyglow/models/dl_models/

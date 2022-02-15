@@ -1,0 +1,8 @@
+{
+  "test/test_hwm.py": true, 
+  "test/test_igrf.py": true, 
+  "test/test_indices.py": true, 
+  "test/test_iri.py": true, 
+  "test/test_msis.py": true, 
+  "test/test_point.py": true
+}
