@@ -45,7 +45,7 @@ pyglow also provides access to the the following geophysical indices:
 First, checkout the repository:
 
 ```
-$ git clone git://github.com/timduly4/pyglow.git pyglow
+$ git clone git://github.com/Armando123x/pyglow.git pyglow
 ```
 
 Change directories into the repository folder, compile the f2py bindings, then install the Python package:
