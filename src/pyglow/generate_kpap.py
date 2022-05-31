@@ -11,7 +11,7 @@ import os
 from numpy import nanmean
 import sys
 import glob
-
+from pathlib import Path
 
 """
 Description:
@@ -106,7 +106,24 @@ GEOPHYSICAL_INDICES_FNAME = os.path.join(
     'geophysical_indices.npy',
 )
 
-
+# def check_update():
+#     path_file=PYGLOW_PATH+"/kpap/last_day.txt"
+#     path_file=Path(path_file)
+#     path_file.touch(exist_ok=True)
+#     now=datetime.now(datetime.timezone.utc)
+#     year=now.year
+    
+    
+#     with (open(path_file),'r') as f:
+#         linea=f.readline()
+#         fecha_hoy=now.strftime("%Y-%m-%d")
+        
+#         if (linea==fecha_hoy):
+#             print("Los archivos se encuentran actualizados a la fecha de hoy {}".format(fecha_hoy))
+        
+#         else:
+#             print("Se actualizarán los indices del IRI a la fecha de hoy {}".format(fecha_hoy))
+            
 def get_mtime_table():
     """
 
@@ -115,7 +132,11 @@ def get_mtime_table():
 
     # kpap files:
     for y in range(1932, END_YEAR):
-        fn = PYGLOW_PATH + "/kpap/%4i" % y
+        
+        if (END_YEAR>=2018):
+            fn = PYGLOW_PATH + "/kpap/%4i.txt"% y
+        else:
+            fn = PYGLOW_PATH + "/kpap/%4i" % y
         if os.path.isfile(fn):
             mtime_table[fn] = os.path.getmtime(fn)
 
@@ -161,7 +182,39 @@ def update_required():
         # with cached geophysical_indices
         return False
 
+def check_kpap(value):
+    if (value==-1):
+        return 0
+    return value
 
+def check_ap(value):
+    if (value==-1):
+        return 0
+    return value
+
+def save_last_value(value):
+    
+    path_IRI=PYGLOW_PATH+'/IRI_files'
+    os.makedirs(path_IRI,exist_ok=True)
+    
+    name_file=PYGLOW_PATH+"/IRI_files/last_kpap.txt"
+    name_file=Path(name_file)
+    name_file.touch(exist_ok=True)
+    
+    with open(name_file,'w') as fx:
+        fx.write(str(value))
+        
+def get_last_value():
+       name_file=PYGLOW_PATH+"/IRI_files/last_kpap.txt"
+       name_file=Path(name_file)
+       name_file.touch(exist_ok=True)
+       
+       with open(name_file,'r') as f:
+           linea=f.readline()
+    
+       return str(linea)
+   
+    
 def generate_kpap():
     """
 
@@ -182,57 +235,114 @@ def generate_kpap():
     f107a = {}
     dst = {}
     ae = {}
-
+    last_value=0
     for y in range(1932, END_YEAR):
-        fn = PYGLOW_PATH + "/kpap/%4i" % y
+        if (y>=2018):
+            fn = PYGLOW_PATH + "/kpap/%4i.txt"% y
+        else:
+            fn = PYGLOW_PATH + "/kpap/%4i" % y
+
+
         if os.path.isfile(fn):  # If the file has been downloaded
             f = open(fn)
+            count=0
             for x in f.readlines():
-                # parse the line for the year, only last 2 digits:
-                year = int(x[0:2])
-
-                if year < 30:  # need to change this is 2030....
-                    year = year + 2000
+                
+                if (y>=2018):
+                    count=count+1
+                    if (count>=41):
+                        year=int(x[0:4])
+                        month=int(x[5:7])
+                        day=int(x[8:10])
+                        #Asignamos los valores de Kp, ap y daily_ap
+                        kp[datetime(year,month,day,0)]=kp1=check_kpap(float(x[34:39]))
+                        kp[datetime(year,month,day,3)]=kp2=check_kpap(float(x[41:46]))
+                        kp[datetime(year,month,day,6)]=kp3=check_kpap(float(x[48:53]))
+                        kp[datetime(year,month,day,9)]=kp4=check_kpap(float(x[55:60]))
+                        kp[datetime(year,month,day,12)]=kp5=check_kpap(float(x[62:67]))
+                        kp[datetime(year,month,day,15)]=kp6=check_kpap(float(x[69:74]))
+                        kp[datetime(year,month,day,18)]=kp7=check_kpap(float(x[76:81]))
+                        kp[datetime(year,month,day,21)]=kp8=check_kpap(float(x[83:88]))
+                        
+                        #Ap
+                        ap[datetime(year,month,day,0)]=ap1=check_ap(int(x[91:93]))
+                        ap[datetime(year,month,day,3)]=ap2=check_ap(int(x[96:98]))
+                        ap[datetime(year,month,day,6)]=ap3=check_ap(int(x[101:103]))
+                        ap[datetime(year,month,day,9)]=ap4=check_ap(int(x[106:108]))
+                        ap[datetime(year,month,day,12)]=ap5=check_ap(int(x[111:113]))
+                        ap[datetime(year,month,day,15)]=ap6=check_ap(int(x[116:118]))
+                        ap[datetime(year,month,day,18)]=ap7=check_ap(int(x[121:123]))
+                        ap[datetime(year,month,day,21)]=ap8=check_ap(int(x[126:128]))
+                
+                        daily_ap[datetime(year, month, day)] = int(x[133:135])
+                        daily_kp[datetime(year, month, day)] = round( \
+                                                              (kp1+kp2+kp3+kp4+kp5+kp6+kp7+kp8)/8.0,3)
+                        
+                            
+                        last_value=datetime(year, month, day).strftime("%Y-%m-%d")
+                        temp=float(x[152:157])
+                        if(temp==-1):
+                           temp=float('NaN') 
+                        elif (temp==0):
+                                temp=float('NaN') 
+                        
+                        f107[datetime(year, month, day)] = temp
+                        
+                        
+                    else:
+                        #Se sigue leyendo las lineas
+                        pass
+                
+                   
                 else:
-                    year = year + 1900
-
-                month = int(x[2:4])  # parse the line for month
-                day = int(x[4:6])  # ... and the days
-
-                # Parse the values for kp, ap, daily_kp, and daily_ap:
-                kp[datetime(year, month, day, 0)] = int(x[12:14])/10.
-                kp[datetime(year, month, day, 3)] = int(x[14:16])/10.
-                kp[datetime(year, month, day, 6)] = int(x[16:18])/10.
-                kp[datetime(year, month, day, 9)] = int(x[18:20])/10.
-                kp[datetime(year, month, day, 12)] = int(x[20:22])/10.
-                kp[datetime(year, month, day, 15)] = int(x[22:24])/10.
-                kp[datetime(year, month, day, 18)] = int(x[24:26])/10.
-                kp[datetime(year, month, day, 21)] = int(x[26:28])/10.
-
-                ap[datetime(year, month, day, 0)] = int(x[31:34])
-                ap[datetime(year, month, day, 3)] = int(x[34:37])
-                ap[datetime(year, month, day, 6)] = int(x[37:40])
-                ap[datetime(year, month, day, 9)] = int(x[40:43])
-                ap[datetime(year, month, day, 12)] = int(x[43:46])
-                ap[datetime(year, month, day, 15)] = int(x[46:49])
-                ap[datetime(year, month, day, 18)] = int(x[49:52])
-                ap[datetime(year, month, day, 21)] = int(x[52:55])
-
-                daily_kp[datetime(year, month, day)] = int(x[28:31])
-                daily_ap[datetime(year, month, day)] = int(x[55:58])
-
-                try:
-                    temp = float(x[65:70])  # f107
-                except ValueError:
-                    temp = float('NaN')  # If the string is empty, just use NaN
-
-                if temp == 0.:  # Replace 0's of f107 with NaN
-                    temp = float('NaN')
-
-                f107[datetime(year, month, day)] = temp
-
+                # parse the line for the year, only last 2 digits:
+                    year = int(x[0:2])
+    
+                    if year < 30:  # need to change this is 2030....
+                        year = year + 2000
+                    else:
+                        year = year + 1900
+    
+                    month = int(x[2:4])  # parse the line for month
+                    day = int(x[4:6])  # ... and the days
+    
+                    # Parse the values for kp, ap, daily_kp, and daily_ap:
+                    kp[datetime(year, month, day, 0)] = int(x[12:14])/10.
+                    kp[datetime(year, month, day, 3)] = int(x[14:16])/10.
+                    kp[datetime(year, month, day, 6)] = int(x[16:18])/10.
+                    kp[datetime(year, month, day, 9)] = int(x[18:20])/10.
+                    kp[datetime(year, month, day, 12)] = int(x[20:22])/10.
+                    kp[datetime(year, month, day, 15)] = int(x[22:24])/10.
+                    kp[datetime(year, month, day, 18)] = int(x[24:26])/10.
+                    kp[datetime(year, month, day, 21)] = int(x[26:28])/10.
+    
+                    ap[datetime(year, month, day, 0)] = int(x[31:34])
+                    ap[datetime(year, month, day, 3)] = int(x[34:37])
+                    ap[datetime(year, month, day, 6)] = int(x[37:40])
+                    ap[datetime(year, month, day, 9)] = int(x[40:43])
+                    ap[datetime(year, month, day, 12)] = int(x[43:46])
+                    ap[datetime(year, month, day, 15)] = int(x[46:49])
+                    ap[datetime(year, month, day, 18)] = int(x[49:52])
+                    ap[datetime(year, month, day, 21)] = int(x[52:55])
+    
+                    daily_kp[datetime(year, month, day)] = int(x[28:31])
+                    daily_ap[datetime(year, month, day)] = int(x[55:58])
+                    
+                    try:
+                        temp = float(x[65:70])  # f107
+                    except ValueError:
+                        temp = float('NaN')  # If the string is empty, just use NaN
+    
+                    if temp == 0.:  # Replace 0's of f107 with NaN
+                        temp = float('NaN')
+    
+                    f107[datetime(year, month, day)] = temp
+                    
+            #ultimo dia con indices kp y ap 
+            
+            
             f.close()
-
+    save_last_value(last_value)        
     # Caculate f107a:
     for dn, value in f107.items():
         f107_81values = []
@@ -381,7 +491,7 @@ def generate_kpap():
     return geophysical_indices
 
 
-def fetch():
+def fetch(forced=False):
     """
     Main interface to retrieve geophysical indices
 
@@ -394,6 +504,8 @@ def fetch():
 
     if update:
         # Fetch indices (it will also save a file):
+        geophysical_indices = generate_kpap()
+    elif (forced==True):
         geophysical_indices = generate_kpap()
     else:
         # Update not required, load cached indices:

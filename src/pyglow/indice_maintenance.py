@@ -6,7 +6,7 @@ import urllib.request
 import shutil
 
 from .constants import DIR_FILE, VERSION
-from .geophysical_indices import Indice
+#from .geophysical_indices import Indice
 from . import generate_kpap
 
 def _update_kpap(year):
@@ -16,14 +16,25 @@ def _update_kpap(year):
 
     :param year: Year to download
     '''
-
+    
     # Pyglow directory:
-    pyglow_dir = os.path.join(DIR_FILE, "kpap/")
-
+    
+    
+    #Aqui es SRC del NOAA
     src = 'ftp://ftp.ngdc.noaa.gov/'\
           + 'STP/GEOMAGNETIC_DATA/INDICES/KP_AP/%4i' % (year,)
-
-    des = pyglow_dir + "%4i" % (year,)
+  
+    #Aqui es SRC del gfz
+    src_gfz="ftp://ftp.gfz-potsdam.de/pub/home/obs/Kp_ap_Ap_SN_F107/"\
+            + "Kp_ap_Ap_SN_F107_%4i.txt" %(year)
+    
+    if(year>=2018):
+        pyglow_dir = os.path.join(DIR_FILE, "kpap/")
+        des = pyglow_dir + "%4i.txt" % (year,)
+        src=src_gfz
+    else:
+        pyglow_dir = os.path.join(DIR_FILE, "kpap/")
+        des = pyglow_dir + "%4i" % (year,)
     print("\nDownloading\n{src}\nto\n{des}".format(src=src, des=des))
     try:
         with contextlib.closing(urllib.request.urlopen(src)) as r:
@@ -206,53 +217,3 @@ def update_indices(year0, year1=None):
     return
 
 
-def check_stored_indices(date0, date1):
-    """
-    Helper function to determine which dates do not have indices
-
-    :param date0: String start date
-    :param date1: String end date
-    """
-
-    # Parse input dates:
-    dn0 = dateutil.parser.parse(date0)
-    dn1 = dateutil.parser.parse(date1)
-
-    # Find date range:
-    dns = [dn0 + timedelta(days=kk) for kk in range((dn1-dn0).days)]
-
-    print("Checking: input date range:")
-    print("  {}".format(dn0.strftime("%Y-%m-%d")))
-    print("  to")
-    print("  {}".format(dn1.strftime("%Y-%m-%d")))
-
-    have_all = True
-    for dn in dns:
-
-        # Instantiate indice class:
-        indice = Indice(dn)
-
-        # Find the indices:
-        indice.run()
-
-        # Are all the indices NaN?
-        if indice.all_nan():
-            status = "--- FAIL ---"
-            failed = True
-            have_all = False
-        else:
-            failed = False
-            status = "OK"
-
-        # Report:
-        if failed:
-            print("{}: {}".format(dn.strftime("%Y-%m-%d"), status))
-
-    # Report only if there were no issues:
-    if have_all:
-        print(
-            ">> We have all of the geophysical indices files between these "
-            "dates."
-        )
-
-    return

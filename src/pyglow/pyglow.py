@@ -23,7 +23,7 @@ from . import generate_kpap
 # Code version:
 __version__ = constants.VERSION
 
-
+from copy import deepcopy
 class Point(object):
 
     def __init__(
@@ -33,6 +33,7 @@ class Point(object):
         lon,
         alt,
         user_ind=False,
+        version=2016
     ):
         """
         An instance of Point is the fundamental data object
@@ -52,12 +53,13 @@ class Point(object):
         """
 
         nan = float('nan')
+        self.version=version
        
         # Record input:
         self.dn = dn
         self.lat = lat
         self.lon = lon
-        self.alt = alt
+        self.alt = deepcopy(alt)
 
         # Error if date is too early:
         if self.dn.year < 1932:
@@ -128,12 +130,43 @@ class Point(object):
         # For run_airglow:
         self.ag6300 = nan
         self.ag7774 = nan
-
+        
+        #Arrays
+        
+        self.ne_array=[]
+        
+        self.check_type_element(self.alt)
         return
     
     
-    def remake_table_kp_ap(self):
-         generate_kpap.fetch()
+    def check_type_element(self,alt):
+    
+         diccionario=["numpy.ndarray","int","float","list"]
+         vector=deepcopy(alt)
+         type_element=str(type(alt))
+
+         for valor in vector:
+             
+                   self.alt=valor
+                   self.location_time = LocationTime(self.dn, 
+                                                     self.lat, 
+                                                     self.lon, 
+                                                     self.alt)
+                   self.run_iri(self.version)
+               
+                   self.ne_array.append(self.ne)
+                    
+
+            
+         
+                 
+    def get_Ne_array(self):
+        return self.ne_array         
+             
+    def get_Ne_number(self):
+       return self.ne
+                         
+                         
 
     def __str__(self):
         """ String representation of pyglow class """

@@ -1,0 +1,829 @@
+[1mdiff --git a/src/pyglow/__init__.py b/src/pyglow/__init__.py[m
+[1mindex 07f3b52..c802ecf 100644[m
+[1m--- a/src/pyglow/__init__.py[m
+[1m+++ b/src/pyglow/__init__.py[m
+[36m@@ -9,5 +9,6 @@[m [mfrom .igrf import IGRF  # noqa F401[m
+ from .location_time import LocationTime  # noqa F401[m
+ from .geophysical_indices import Indice  # noqa F401[m
+ from .indice_maintenance import update_indices  # noqa F401[m
+[31m-from .indice_maintenance import check_stored_indices  # noqa F401[m
+[31m-from .indice_maintenance import actualizar_tablas[m
+\ No newline at end of file[m
+[32m+[m[32mfrom .geophysical_indices import check_stored_indices  # noqa F401[m
+[32m+[m[32mfrom .indice_maintenance import actualizar_tablas[m
+[32m+[m[32mfrom .generate_kpap import get_last_value,save_last_value,fetch[m
+\ No newline at end of file[m
+[1mdiff --git a/src/pyglow/generate_kpap.py b/src/pyglow/generate_kpap.py[m
+[1mindex 6c45d9a..a3c1b9b 100644[m
+[1m--- a/src/pyglow/generate_kpap.py[m
+[1m+++ b/src/pyglow/generate_kpap.py[m
+[36m@@ -11,7 +11,7 @@[m [mimport os[m
+ from numpy import nanmean[m
+ import sys[m
+ import glob[m
+[31m-[m
+[32m+[m[32mfrom pathlib import Path[m
+ [m
+ """[m
+ Description:[m
+[36m@@ -106,7 +106,24 @@[m [mGEOPHYSICAL_INDICES_FNAME = os.path.join([m
+     'geophysical_indices.npy',[m
+ )[m
+ [m
+[31m-[m
+[32m+[m[32m# def check_update():[m
+[32m+[m[32m#     path_file=PYGLOW_PATH+"/kpap/last_day.txt"[m
+[32m+[m[32m#     path_file=Path(path_file)[m
+[32m+[m[32m#     path_file.touch(exist_ok=True)[m
+[32m+[m[32m#     now=datetime.now(datetime.timezone.utc)[m
+[32m+[m[32m#     year=now.year[m
+[32m+[m[41m    [m
+[32m+[m[41m    [m
+[32m+[m[32m#     with (open(path_file),'r') as f:[m
+[32m+[m[32m#         linea=f.readline()[m
+[32m+[m[32m#         fecha_hoy=now.strftime("%Y-%m-%d")[m
+[32m+[m[41m        [m
+[32m+[m[32m#         if (linea==fecha_hoy):[m
+[32m+[m[32m#             print("Los archivos se encuentran actualizados a la fecha de hoy {}".format(fecha_hoy))[m
+[32m+[m[41m        [m
+[32m+[m[32m#         else:[m
+[32m+[m[32m#             print("Se actualizarán los indices del IRI a la fecha de hoy {}".format(fecha_hoy))[m
+[32m+[m[41m            [m
+ def get_mtime_table():[m
+     """[m
+ [m
+[36m@@ -115,7 +132,11 @@[m [mdef get_mtime_table():[m
+ [m
+     # kpap files:[m
+     for y in range(1932, END_YEAR):[m
+[31m-        fn = PYGLOW_PATH + "/kpap/%4i" % y[m
+[32m+[m[41m        [m
+[32m+[m[32m        if (END_YEAR>=2018):[m
+[32m+[m[32m            fn = PYGLOW_PATH + "/kpap/%4i.txt"% y[m
+[32m+[m[32m        else:[m
+[32m+[m[32m            fn = PYGLOW_PATH + "/kpap/%4i" % y[m
+         if os.path.isfile(fn):[m
+             mtime_table[fn] = os.path.getmtime(fn)[m
+ [m
+[36m@@ -161,7 +182,39 @@[m [mdef update_required():[m
+         # with cached geophysical_indices[m
+         return False[m
+ [m
+[31m-[m
+[32m+[m[32mdef check_kpap(value):[m
+[32m+[m[32m    if (value==-1):[m
+[32m+[m[32m        return 0[m
+[32m+[m[32m    return value[m
+[32m+[m
+[32m+[m[32mdef check_ap(value):[m
+[32m+[m[32m    if (value==-1):[m
+[32m+[m[32m        return 0[m
+[32m+[m[32m    return value[m
+[32m+[m
+[32m+[m[32mdef save_last_value(value):[m
+[32m+[m[41m    [m
+[32m+[m[32m    path_IRI=PYGLOW_PATH+'/IRI_files'[m
+[32m+[m[32m    os.makedirs(path_IRI,exist_ok=True)[m
+[32m+[m[41m    [m
+[32m+[m[32m    name_file=PYGLOW_PATH+"/IRI_files/last_kpap.txt"[m
+[32m+[m[32m    name_file=Path(name_file)[m
+[32m+[m[32m    name_file.touch(exist_ok=True)[m
+[32m+[m[41m    [m
+[32m+[m[32m    with open(name_file,'w') as fx:[m
+[32m+[m[32m        fx.write(str(value))[m
+[32m+[m[41m        [m
+[32m+[m[32mdef get_last_value():[m
+[32m+[m[32m       name_file=PYGLOW_PATH+"/IRI_files/last_kpap.txt"[m
+[32m+[m[32m       name_file=Path(name_file)[m
+[32m+[m[32m       name_file.touch(exist_ok=True)[m
+[32m+[m[41m       [m
+[32m+[m[32m       with open(name_file,'r') as f:[m
+[32m+[m[32m           linea=f.readline()[m
+[32m+[m[41m    [m
+[32m+[m[32m       return str(linea)[m
+[32m+[m[41m   [m
+[32m+[m[41m    [m
+ def generate_kpap():[m
+     """[m
+ [m
+[36m@@ -182,57 +235,114 @@[m [mdef generate_kpap():[m
+     f107a = {}[m
+     dst = {}[m
+     ae = {}[m
+[31m-[m
+[32m+[m[32m    last_value=0[m
+     for y in range(1932, END_YEAR):[m
+[31m-        fn = PYGLOW_PATH + "/kpap/%4i" % y[m
+[32m+[m[32m        if (y>=2018):[m
+[32m+[m[32m            fn = PYGLOW_PATH + "/kpap/%4i.txt"% y[m
+[32m+[m[32m        else:[m
+[32m+[m[32m            fn = PYGLOW_PATH + "/kpap/%4i" % y[m
+[32m+[m
+[32m+[m
+         if os.path.isfile(fn):  # If the file has been downloaded[m
+             f = open(fn)[m
+[32m+[m[32m            count=0[m
+             for x in f.readlines():[m
+[31m-                # parse the line for the year, only last 2 digits:[m
+[31m-                year = int(x[0:2])[m
+[31m-[m
+[31m-                if year < 30:  # need to change this is 2030....[m
+[31m-                    year = year + 2000[m
+[32m+[m[41m                [m
+[32m+[m[32m                if (y>=2018):[m
+[32m+[m[32m                    count=count+1[m
+[32m+[m[32m                    if (count>=41):[m
+[32m+[m[32m                        year=int(x[0:4])[m
+[32m+[m[32m                        month=int(x[5:7])[m
+[32m+[m[32m                        day=int(x[8:10])[m
+[32m+[m[32m                        #Asignamos los valores de Kp, ap y daily_ap[m
+[32m+[m[32m                        kp[datetime(year,month,day,0)]=kp1=check_kpap(float(x[34:39]))[m
+[32m+[m[32m                        kp[datetime(year,month,day,3)]=kp2=check_kpap(float(x[41:46]))[m
+[32m+[m[32m                        kp[datetime(year,month,day,6)]=kp3=check_kpap(float(x[48:53]))[m
+[32m+[m[32m                        kp[datetime(year,month,day,9)]=kp4=check_kpap(float(x[55:60]))[m
+[32m+[m[32m                        kp[datetime(year,month,day,12)]=kp5=check_kpap(float(x[62:67]))[m
+[32m+[m[32m                        kp[datetime(year,month,day,15)]=kp6=check_kpap(float(x[69:74]))[m
+[32m+[m[32m                        kp[datetime(year,month,day,18)]=kp7=check_kpap(float(x[76:81]))[m
+[32m+[m[32m                        kp[datetime(year,month,day,21)]=kp8=check_kpap(float(x[83:88]))[m
+[32m+[m[41m                        [m
+[32m+[m[32m                        #Ap[m
+[32m+[m[32m                        ap[datetime(year,month,day,0)]=ap1=check_ap(int(x[91:93]))[m
+[32m+[m[32m                        ap[datetime(year,month,day,3)]=ap2=check_ap(int(x[96:98]))[m
+[32m+[m[32m                        ap[datetime(year,month,day,6)]=ap3=check_ap(int(x[101:103]))[m
+[32m+[m[32m                        ap[datetime(year,month,day,9)]=ap4=check_ap(int(x[106:108]))[m
+[32m+[m[32m                        ap[datetime(year,month,day,12)]=ap5=check_ap(int(x[111:113]))[m
+[32m+[m[32m                        ap[datetime(year,month,day,15)]=ap6=check_ap(int(x[116:118]))[m
+[32m+[m[32m                        ap[datetime(year,month,day,18)]=ap7=check_ap(int(x[121:123]))[m
+[32m+[m[32m                        ap[datetime(year,month,day,21)]=ap8=check_ap(int(x[126:128]))[m
+[32m+[m[41m                [m
+[32m+[m[32m                        daily_ap[datetime(year, month, day)] = int(x[133:135])[m
+[32m+[m[32m                        daily_kp[datetime(year, month, day)] = round( \[m
+[32m+[m[32m                                                              (kp1+kp2+kp3+kp4+kp5+kp6+kp7+kp8)/8.0,3)[m
+[32m+[m[41m                        [m
+[32m+[m[41m                            [m
+[32m+[m[32m                        last_value=datetime(year, month, day).strftime("%Y-%m-%d")[m
+[32m+[m[32m                        temp=float(x[152:157])[m
+[32m+[m[32m                        if(temp==-1):[m
+[32m+[m[32m                           temp=float('NaN')[m[41m [m
+[32m+[m[32m                        elif (temp==0):[m
+[32m+[m[32m                                temp=float('NaN')[m[41m [m
+[32m+[m[41m                        [m
+[32m+[m[32m                        f107[datetime(year, month, day)] = temp[m
+[32m+[m[41m                        [m
+[32m+[m[41m                        [m
+[32m+[m[32m                    else:[m
+[32m+[m[32m                        #Se sigue leyendo las lineas[m
+[32m+[m[32m                        pass[m
+[32m+[m[41m                [m
+[32m+[m[41m                   [m
+                 else:[m
+[31m-                    year = year + 1900[m
+[31m-[m
+[31m-                month = int(x[2:4])  # parse the line for month[m
+[31m-                day = int(x[4:6])  # ... and the days[m
+[31m-[m
+[31m-                # Parse the values for kp, ap, daily_kp, and daily_ap:[m
+[31m-                kp[datetime(year, month, day, 0)] = int(x[12:14])/10.[m
+[31m-                kp[datetime(year, month, day, 3)] = int(x[14:16])/10.[m
+[31m-                kp[datetime(year, month, day, 6)] = int(x[16:18])/10.[m
+[31m-                kp[datetime(year, month, day, 9)] = int(x[18:20])/10.[m
+[31m-                kp[datetime(year, month, day, 12)] = int(x[20:22])/10.[m
+[31m-                kp[datetime(year, month, day, 15)] = int(x[22:24])/10.[m
+[31m-                kp[datetime(year, month, day, 18)] = int(x[24:26])/10.[m
+[31m-                kp[datetime(year, month, day, 21)] = int(x[26:28])/10.[m
+[31m-[m
+[31m-                ap[datetime(year, month, day, 0)] = int(x[31:34])[m
+[31m-                ap[datetime(year, month, day, 3)] = int(x[34:37])[m
+[31m-                ap[datetime(year, month, day, 6)] = int(x[37:40])[m
+[31m-                ap[datetime(year, month, day, 9)] = int(x[40:43])[m
+[31m-                ap[datetime(year, month, day, 12)] = int(x[43:46])[m
+[31m-                ap[datetime(year, month, day, 15)] = int(x[46:49])[m
+[31m-                ap[datetime(year, month, day, 18)] = int(x[49:52])[m
+[31m-                ap[datetime(year, month, day, 21)] = int(x[52:55])[m
+[31m-[m
+[31m-                daily_kp[datetime(year, month, day)] = int(x[28:31])[m
+[31m-                daily_ap[datetime(year, month, day)] = int(x[55:58])[m
+[31m-[m
+[31m-                try:[m
+[31m-                    temp = float(x[65:70])  # f107[m
+[31m-                except ValueError:[m
+[31m-                    temp = float('NaN')  # If the string is empty, just use NaN[m
+[31m-[m
+[31m-                if temp == 0.:  # Replace 0's of f107 with NaN[m
+[31m-                    temp = float('NaN')[m
+[31m-[m
+[31m-                f107[datetime(year, month, day)] = temp[m
+[31m-[m
+[32m+[m[32m                # parse the line for the year, only last 2 digits:[m
+[32m+[m[32m                    year = int(x[0:2])[m
+[32m+[m[41m    [m
+[32m+[m[32m                    if year < 30:  # need to change this is 2030....[m
+[32m+[m[32m                        year = year + 2000[m
+[32m+[m[32m                    else:[m
+[32m+[m[32m                        year = year + 1900[m
+[32m+[m[41m    [m
+[32m+[m[32m                    month = int(x[2:4])  # parse the line for month[m
+[32m+[m[32m                    day = int(x[4:6])  # ... and the days[m
+[32m+[m[41m    [m
+[32m+[m[32m                    # Parse the values for kp, ap, daily_kp, and daily_ap:[m
+[32m+[m[32m                    kp[datetime(year, month, day, 0)] = int(x[12:14])/10.[m
+[32m+[m[32m                    kp[datetime(year, month, day, 3)] = int(x[14:16])/10.[m
+[32m+[m[32m                    kp[datetime(year, month, day, 6)] = int(x[16:18])/10.[m
+[32m+[m[32m                    kp[datetime(year, month, day, 9)] = int(x[18:20])/10.[m
+[32m+[m[32m                    kp[datetime(year, month, day, 12)] = int(x[20:22])/10.[m
+[32m+[m[32m                    kp[datetime(year, month, day, 15)] = int(x[22:24])/10.[m
+[32m+[m[32m                    kp[datetime(year, month, day, 18)] = int(x[24:26])/10.[m
+[32m+[m[32m                    kp[datetime(year, month, day, 21)] = int(x[26:28])/10.[m
+[32m+[m[41m    [m
+[32m+[m[32m                    ap[datetime(year, month, day, 0)] = int(x[31:34])[m
+[32m+[m[32m                    ap[datetime(year, month, day, 3)] = int(x[34:37])[m
+[32m+[m[32m                    ap[datetime(year, month, day, 6)] = int(x[37:40])[m
+[32m+[m[32m                    ap[datetime(year, month, day, 9)] = int(x[40:43])[m
+[32m+[m[32m                    ap[datetime(year, month, day, 12)] = int(x[43:46])[m
+[32m+[m[32m                    ap[datetime(year, month, day, 15)] = int(x[46:49])[m
+[32m+[m[32m                    ap[datetime(year, month, day, 18)] = int(x[49:52])[m
+[32m+[m[32m                    ap[datetime(year, month, day, 21)] = int(x[52:55])[m
+[32m+[m[41m    [m
+[32m+[m[32m                    daily_kp[datetime(year, month, day)] = int(x[28:31])[m
+[32m+[m[32m                    daily_ap[datetime(year, month, day)] = int(x[55:58])[m
+[32m+[m[41m                    [m
+[32m+[m[32m                    try:[m
+[32m+[m[32m                        temp = float(x[65:70])  # f107[m
+[32m+[m[32m                    except ValueError:[m
+[32m+[m[32m                        temp = float('NaN')  # If the string is empty, just use NaN[m
+[32m+[m[41m    [m
+[32m+[m[32m                    if temp == 0.:  # Replace 0's of f107 with NaN[m
+[32m+[m[32m                        temp = float('NaN')[m
+[32m+[m[41m    [m
+[32m+[m[32m                    f107[datetime(year, month, day)] = temp[m
+[32m+[m[41m                    [m
+[32m+[m[32m            #ultimo dia con indices kp y ap[m[41m [m
+[32m+[m[41m            [m
+[32m+[m[41m            [m
+             f.close()[m
+[31m-[m
+[32m+[m[32m    save_last_value(last_value)[m[41m        [m
+     # Caculate f107a:[m
+     for dn, value in f107.items():[m
+         f107_81values = [][m
+[36m@@ -381,7 +491,7 @@[m [mdef generate_kpap():[m
+     return geophysical_indices[m
+ [m
+ [m
+[31m-def fetch():[m
+[32m+[m[32mdef fetch(forced=False):[m
+     """[m
+     Main interface to retrieve geophysical indices[m
+ [m
+[36m@@ -395,6 +505,8 @@[m [mdef fetch():[m
+     if update:[m
+         # Fetch indices (it will also save a file):[m
+         geophysical_indices = generate_kpap()[m
+[32m+[m[32m    elif (forced==True):[m
+[32m+[m[32m        geophysical_indices = generate_kpap()[m
+     else:[m
+         # Update not required, load cached indices:[m
+         geophysical_indices = np.load(GEOPHYSICAL_INDICES_FNAME)[m
+[1mdiff --git a/src/pyglow/geophysical_indices.py b/src/pyglow/geophysical_indices.py[m
+[1mindex 3fec8b0..a3c8592 100644[m
+[1m--- a/src/pyglow/geophysical_indices.py[m
+[1m+++ b/src/pyglow/geophysical_indices.py[m
+[36m@@ -1,8 +1,13 @@[m
+ import numpy as np[m
+[32m+[m[32mfrom pathlib import Path[m
+[32m+[m[32mimport os[m[41m [m
+[32m+[m[32mimport datetime as dt[m
+ [m
+ from .get_kpap import get_kpap[m
+ from .get_apmsis import get_apmsis[m
+ from .constants import nan[m
+[32m+[m[32mfrom . import generate_kpap[m
+[32m+[m[32mfrom .indice_maintenance import update_indices[m
+ [m
+ [m
+ class Indice(object):[m
+[36m@@ -24,18 +29,86 @@[m [mclass Indice(object):[m
+         self.ap_daily = nan[m
+         self.dst = nan[m
+         self.ae = nan[m
+[31m-[m
+[32m+[m[32m        self.DIR_FILE=os.path.dirname(__file__)[m
+         # AP values for MSIS:[m
+         self.apmsis = [nan, ] * 7[m
+[31m-[m
+[31m-    def run(self):[m
+[32m+[m[41m        [m
+[32m+[m[32m        self.GEOPHYSICAL_INDICES=generate_kpap.fetch()[m
+[32m+[m[32m        self.check_day()[m
+[32m+[m[41m        [m
+[32m+[m[41m        [m
+[32m+[m[32m    def check_day(self,):[m[41m [m
+[32m+[m[41m  [m
+[32m+[m[32m        '''[m
+[32m+[m[32m        Revisamos si los indices se encuentran actualizados[m
+[32m+[m[32m        '''[m
+[32m+[m[32m        path_IRI=Path(self.DIR_FILE+'/IRI_files')[m
+[32m+[m[32m        path_IRI.mkdir(parents=True,exist_ok=True)[m
+[32m+[m[32m        name_indicator=Path(self.DIR_FILE+'/IRI_files/last_day.txt')[m
+[32m+[m[32m        name_indicator.touch(exist_ok=True)[m
+[32m+[m[32m        #print("Verificando indices ...")[m
+[32m+[m[32m        impr=Path(self.DIR_FILE+"/IRI_files/impr.txt")[m
+[32m+[m[41m        [m
+[32m+[m[32m        impr.touch(exist_ok=True)[m
+[32m+[m[32m        now =dt.datetime.now(dt.timezone.utc)[m
+[32m+[m[32m        year=now.year[m
+[32m+[m[32m        escribir_text=False[m
+[32m+[m[41m        [m
+[32m+[m[32m        #Actualizamos la tabla[m
+[32m+[m[32m        #pgw.actualizar_tablas()[m[41m  [m
+[32m+[m[32m        last_kp=generate_kpap.get_last_value()[m
+[32m+[m[41m        [m
+[32m+[m[41m        [m
+[32m+[m[32m        #last_kp=pgw.get_last_value()[m[41m [m
+[32m+[m[41m        [m
+[32m+[m[32m        with open (impr,'r+') as f:[m
+[32m+[m[32m            count=f.readline()[m
+[32m+[m[32m        try:[m
+[32m+[m[32m            count=int(count)[m
+[32m+[m[32m        except ValueError as e:[m
+[32m+[m[32m            count=0[m
+[32m+[m[32m        with open(name_indicator,'r') as f:[m
+[32m+[m[32m            linea=f.readline()[m
+[32m+[m[32m            fecha_hoy=now.strftime("%Y-%m-%d")[m
+[32m+[m[32m            if(linea==fecha_hoy):[m
+[32m+[m[32m                if (count!=1):[m
+[32m+[m[32m                    print("Los indices se encuentran actualizados a la fecha {}".format(fecha_hoy))[m
+[32m+[m[32m                    print("Ultimo valor Kp, Ap, 10.7 es de la fecha {}".format(last_kp))[m
+[32m+[m[32m                    with open (impr,'r+') as fr:[m
+[32m+[m[32m                        fr.write("1")[m
+[32m+[m[32m                else:[m
+[32m+[m[32m                    pass[m
+[32m+[m[32m            else:[m
+[32m+[m[32m                print("Los indices se actualizarán a la fecha de hoy {}. \nEsto puede tomar un momento...".format(fecha_hoy))[m
+[32m+[m[32m                update_indices(year)[m
+[32m+[m[32m                print("Actualización terminada")[m
+[32m+[m[32m                escribir_text=True[m
+[32m+[m[32m                #f.write(fecha_hoy)[m
+[32m+[m[32m                with open (impr,'r+') as fr:[m
+[32m+[m[32m                        fr.write("0")[m
+[32m+[m[41m                     [m
+[32m+[m[41m                [m
+[32m+[m[41m                [m
+[32m+[m[32m            if escribir_text:[m
+[32m+[m[32m                with open(name_indicator,'w') as f:[m
+[32m+[m[32m                    f.write(fecha_hoy)[m
+[32m+[m[32m                    self.GEOPHYSICAL_INDICES=generate_kpap.fetch(True)[m[41m [m
+[32m+[m[32m                    last_kp=generate_kpap.get_last_value()[m
+[32m+[m[32m                    print("Ultimo valor Kp, Ap, 10.7 es de la fecha {}".format(last_kp))[m
+[32m+[m[41m     [m
+[32m+[m[41m        [m
+[32m+[m[41m        [m
+[32m+[m[32m    def run(self):[m[41m [m
+[32m+[m[41m        [m
+         """[m
+         Calculates the geophysical indices[m
+         """[m
+[31m-[m
+[32m+[m[41m        [m
+         # Geophysical indices:[m
+[32m+[m[41m       [m
+[32m+[m[41m        [m
+         kp, ap, f107, f107a, f107p, kp_daily, ap_daily, dst, ae = \[m
+[31m-            get_kpap(self.dn)[m
+[32m+[m[32m            get_kpap(self.GEOPHYSICAL_INDICES,self.dn)[m
+ [m
+         # Assign to member variables:[m
+         self.kp = kp[m
+[36m@@ -69,3 +142,58 @@[m [mclass Indice(object):[m
+         all_nan &= all(np.isnan(_) for _ in self.apmsis)[m
+ [m
+         return all_nan[m
+[32m+[m
+[32m+[m
+[32m+[m[32mimport dateutil.parser[m
+[32m+[m
+[32m+[m[32mfrom datetime import timedelta[m
+[32m+[m[32mdef check_stored_indices(date0, date1):[m
+[32m+[m[32m    """[m
+[32m+[m[32m    Helper function to determine which dates do not have indices[m
+[32m+[m
+[32m+[m[32m    :param date0: String start date[m
+[32m+[m[32m    :param date1: String end date[m
+[32m+[m[32m    """[m
+[32m+[m
+[32m+[m[32m    # Parse input dates:[m
+[32m+[m[32m    dn0 = dateutil.parser.parse(date0)[m
+[32m+[m[32m    dn1 = dateutil.parser.parse(date1)[m
+[32m+[m
+[32m+[m[32m    # Find date range:[m
+[32m+[m[32m    dns = [dn0 + timedelta(days=kk) for kk in range((dn1-dn0).days)][m
+[32m+[m
+[32m+[m[32m    print("Checking: input date range:")[m
+[32m+[m[32m    print("  {}".format(dn0.strftime("%Y-%m-%d")))[m
+[32m+[m[32m    print("  to")[m
+[32m+[m[32m    print("  {}".format(dn1.strftime("%Y-%m-%d")))[m
+[32m+[m
+[32m+[m[32m    have_all = True[m
+[32m+[m[32m    for dn in dns:[m
+[32m+[m
+[32m+[m[32m        # Instantiate indice class:[m
+[32m+[m[32m        indice = Indice(dn)[m
+[32m+[m
+[32m+[m[32m        # Find the indices:[m
+[32m+[m[32m        indice.run()[m
+[32m+[m
+[32m+[m[32m        # Are all the indices NaN?[m
+[32m+[m[32m        if indice.all_nan():[m
+[32m+[m[32m            status = "--- FAIL ---"[m
+[32m+[m[32m            failed = True[m
+[32m+[m[32m            have_all = False[m
+[32m+[m[32m        else:[m
+[32m+[m[32m            failed = False[m
+[32m+[m[32m            status = "OK"[m
+[32m+[m
+[32m+[m[32m        # Report:[m
+[32m+[m[32m        if failed:[m
+[32m+[m[32m            print("{}: {}".format(dn.strftime("%Y-%m-%d"), status))[m
+[32m+[m
+[32m+[m[32m    # Report only if there were no issues:[m
+[32m+[m[32m    if have_all:[m
+[32m+[m[32m        print([m
+[32m+[m[32m            ">> We have all of the geophysical indices files between these "[m
+[32m+[m[32m            "dates."[m
+[32m+[m[32m        )[m
+[32m+[m
+[32m+[m[32m    return[m
+[1mdiff --git a/src/pyglow/get_apmsis.py b/src/pyglow/get_apmsis.py[m
+[1mindex 75304b9..491c304 100644[m
+[1m--- a/src/pyglow/get_apmsis.py[m
+[1m+++ b/src/pyglow/get_apmsis.py[m
+[36m@@ -3,10 +3,12 @@[m [mfrom __future__ import absolute_import[m
+ import numpy as np[m
+ from datetime import timedelta[m
+ [m
+[31m-from .get_kpap import get_kpap[m
+[32m+[m[32mfrom .get_kpap import get_kpap,get_GEOPHYSICAL_table[m
+[32m+[m
+ [m
+ [m
+ def get_apmsis(dn):[m
+[32m+[m[32m    GEOPHYSICAL_INDICES = get_GEOPHYSICAL_table()[m
+     """[m
+     Function: get_apmsis(dn)[m
+     ---------------------[m
+[36m@@ -43,22 +45,25 @@[m [mdef get_apmsis(dn):[m
+     out = float('nan')*np.zeros(7)[m
+ [m
+     # (1) DAILY AP[m
+[31m-    _, ap, _, _, _, _, daily_ap, _, _ = get_kpap(dn)[m
+[32m+[m[32m    _, ap, _, _, _, _, daily_ap, _, _ = get_kpap(GEOPHYSICAL_INDICES,dn=dn)[m
+     out[0] = daily_ap[m
+ [m
+     # (2) 3 HR AP INDEX FOR CURRENT TIME[m
+     out[1] = ap[m
+ [m
+     # (3) 3 HR AP INDEX FOR 3 HRS BEFORE CURRENT TIME[m
+[31m-    _, ap, _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-3))[m
+[32m+[m[32m    _, ap, _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                          dn=dn+timedelta(hours=-3))[m
+     out[2] = ap[m
+ [m
+     # (4) 3 HR AP INDEX FOR 6 HRS BEFORE CURRENT TIME[m
+[31m-    _, ap, _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-6))[m
+[32m+[m[32m    _, ap, _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                          dn=dn+timedelta(hours=-6))[m
+     out[3] = ap[m
+ [m
+     # (5) 3 HR AP INDEX FOR 9 HRS BEFORE CURRENT TIME[m
+[31m-    _, ap, _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-9))[m
+[32m+[m[32m    _, ap, _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                          dn=dn+timedelta(hours=-9))[m
+     out[4] = ap[m
+ [m
+     # (6) AVERAGE OF EIGHT 3 HR AP INDICIES FROM 12 TO 33 HRS[m
+[36m@@ -66,14 +71,22 @@[m [mdef get_apmsis(dn):[m
+ [m
+     temp = np.zeros(8)[m
+ [m
+[31m-    _, temp[0], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-12))[m
+[31m-    _, temp[1], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-15))[m
+[31m-    _, temp[2], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-18))[m
+[31m-    _, temp[3], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-21))[m
+[31m-    _, temp[4], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-24))[m
+[31m-    _, temp[5], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-27))[m
+[31m-    _, temp[6], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-30))[m
+[31m-    _, temp[7], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-33))[m
+[32m+[m[32m    _, temp[0], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-12))[m
+[32m+[m[32m    _, temp[1], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-15))[m
+[32m+[m[32m    _, temp[2], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-18))[m
+[32m+[m[32m    _, temp[3], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-21))[m
+[32m+[m[32m    _, temp[4], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-24))[m
+[32m+[m[32m    _, temp[5], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-27))[m
+[32m+[m[32m    _, temp[6], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-30))[m
+[32m+[m[32m    _, temp[7], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-33))[m
+ [m
+     out[5] = np.nan if all(np.isnan(temp)) else np.nanmean(temp)[m
+ [m
+[36m@@ -82,14 +95,22 @@[m [mdef get_apmsis(dn):[m
+ [m
+     temp = np.zeros(8)[m
+ [m
+[31m-    _, temp[0], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-36))[m
+[31m-    _, temp[1], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-39))[m
+[31m-    _, temp[2], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-42))[m
+[31m-    _, temp[3], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-45))[m
+[31m-    _, temp[4], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-48))[m
+[31m-    _, temp[5], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-51))[m
+[31m-    _, temp[6], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-54))[m
+[31m-    _, temp[7], _, _, _, _, _, _, _ = get_kpap(dn+timedelta(hours=-57))[m
+[32m+[m[32m    _, temp[0], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-36))[m
+[32m+[m[32m    _, temp[1], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-39))[m
+[32m+[m[32m    _, temp[2], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-42))[m
+[32m+[m[32m    _, temp[3], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-45))[m
+[32m+[m[32m    _, temp[4], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-48))[m
+[32m+[m[32m    _, temp[5], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-51))[m
+[32m+[m[32m    _, temp[6], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-54))[m
+[32m+[m[32m    _, temp[7], _, _, _, _, _, _, _ = get_kpap(GEOPHYSICAL_INDICES,[m
+[32m+[m[32m                                               dn=dn+timedelta(hours=-57))[m
+ [m
+     out[6] = np.nan if all(np.isnan(temp)) else np.nanmean(temp)[m
+ [m
+[1mdiff --git a/src/pyglow/get_kpap.py b/src/pyglow/get_kpap.py[m
+[1mindex b553935..67393fc 100644[m
+[1m--- a/src/pyglow/get_kpap.py[m
+[1m+++ b/src/pyglow/get_kpap.py[m
+[36m@@ -7,11 +7,14 @@[m [mimport numpy as np[m
+ from . import generate_kpap[m
+ [m
+ [m
+[31m-GEOPHYSICAL_INDICES = generate_kpap.fetch()[m
+[32m+[m[32m#GEOPHYSICAL_INDICES = generate_kpap.fetch()[m
+ [m
+[31m-def get_kpap(dn):[m
+[32m+[m[32mdef get_GEOPHYSICAL_table():[m
+[32m+[m[32m    return generate_kpap.fetch()[m
+[32m+[m
+[32m+[m[32mdef get_kpap(GEOPHYSICAL_INDICES,dn):[m
+     # Fetch geophysical indices (Global variable to make it fast):[m
+[31m-    [m
+[32m+[m
+     """[m
+     Function: get_kpap(dn)[m
+     ---------------------[m
+[36m@@ -26,24 +29,49 @@[m [mdef get_kpap(dn):[m
+         kp, ap, f107, f107a, f107p, daily_kp, daily_ap, dst, ae[m
+ [m
+     History:[m
+[31m-    --------[m
+[32m+[m[32m    --------s[m
+         7/21/12 Created, Timothy Duly (duly2@illinois.edu)[m
+ [m
+     """[m
+     dn_floor = datetime(dn.year, dn.month, dn.day)[m
+     day_index = (dn_floor - generate_kpap.EPOCH).days[m
+     hour_index = int(np.floor(dn.hour/3.))[m
+[32m+[m[41m    [m
+[32m+[m[41m    [m
+[32m+[m[32m    try:[m
+[32m+[m[41m        [m
+[32m+[m[32m        kp = GEOPHYSICAL_INDICES[hour_index, day_index][m
+[32m+[m[32m        ap = GEOPHYSICAL_INDICES[hour_index+8, day_index][m
+[32m+[m[32m        f107 = GEOPHYSICAL_INDICES[16, day_index][m
+[32m+[m[32m        f107a = GEOPHYSICAL_INDICES[17, day_index][m
+[32m+[m[32m        f107p = GEOPHYSICAL_INDICES[16, day_index-1][m
+[32m+[m[32m        daily_kp = GEOPHYSICAL_INDICES[18, day_index][m
+[32m+[m[32m        daily_ap = GEOPHYSICAL_INDICES[19, day_index][m
+[32m+[m[41m        [m
+[32m+[m[32m        dst = GEOPHYSICAL_INDICES[20+dn.hour, day_index][m
+[32m+[m[32m        ae = GEOPHYSICAL_INDICES[44+dn.hour, day_index][m
+[32m+[m[41m        [m
+[32m+[m[41m        [m
+[32m+[m[32m    except IndexError:[m
+[32m+[m[41m        [m
+[32m+[m[32m        x,day=np.shape(GEOPHYSICAL_INDICES)[m
+[32m+[m[41m        [m
+[32m+[m[32m        kp = GEOPHYSICAL_INDICES[hour_index, day-1][m
+[32m+[m[32m        ap = GEOPHYSICAL_INDICES[hour_index+8, day-1][m
+[32m+[m[32m        f107 = GEOPHYSICAL_INDICES[16, day-1][m
+[32m+[m[32m        f107a = GEOPHYSICAL_INDICES[17, day-1][m
+[32m+[m[32m        f107p = GEOPHYSICAL_INDICES[16, day-2][m
+[32m+[m[32m        daily_kp = GEOPHYSICAL_INDICES[18, day-1][m
+[32m+[m[32m        daily_ap = GEOPHYSICAL_INDICES[19, day-1][m
+[32m+[m[41m        [m
+[32m+[m[41m        [m
+[32m+[m[32m        dst = GEOPHYSICAL_INDICES[20+dn.hour, day-1][m
+[32m+[m[32m        ae = GEOPHYSICAL_INDICES[44+dn.hour, day-1][m
+[32m+[m[41m        [m
+[32m+[m[32m        # print("\nNo se cuentan con suficientes valores de los indices Kp y Ap para el dia deseado.\[m
+[32m+[m[32m        #       Se calcula con el día máximo disponible {}".format(str(generate_kpap.get_last_value())))[m
+ [m
+[31m-    kp = GEOPHYSICAL_INDICES[hour_index, day_index][m
+[31m-    ap = GEOPHYSICAL_INDICES[hour_index+8, day_index][m
+[31m-    f107 = GEOPHYSICAL_INDICES[16, day_index][m
+[31m-    f107a = GEOPHYSICAL_INDICES[17, day_index][m
+[31m-    f107p = GEOPHYSICAL_INDICES[16, day_index-1][m
+[31m-[m
+[31m-    daily_kp = GEOPHYSICAL_INDICES[18, day_index][m
+[31m-    daily_ap = GEOPHYSICAL_INDICES[19, day_index][m
+[32m+[m[41m      [m
+ [m
+[31m-    dst = GEOPHYSICAL_INDICES[20+dn.hour, day_index][m
+[31m-    ae = GEOPHYSICAL_INDICES[44+dn.hour, day_index][m
+ [m
+     return kp, ap, f107, f107a, f107p, daily_kp, daily_ap, dst, ae[m
+[1mdiff --git a/src/pyglow/indice_maintenance.py b/src/pyglow/indice_maintenance.py[m
+[1mindex 7fb5c6c..6c33768 100644[m
+[1m--- a/src/pyglow/indice_maintenance.py[m
+[1m+++ b/src/pyglow/indice_maintenance.py[m
+[36m@@ -6,7 +6,7 @@[m [mimport urllib.request[m
+ import shutil[m
+ [m
+ from .constants import DIR_FILE, VERSION[m
+[31m-from .geophysical_indices import Indice[m
+[32m+[m[32m#from .geophysical_indices import Indice[m
+ from . import generate_kpap[m
+ [m
+ def _update_kpap(year):[m
+[36m@@ -16,14 +16,25 @@[m [mdef _update_kpap(year):[m
+ [m
+     :param year: Year to download[m
+     '''[m
+[31m-[m
+[32m+[m[41m    [m
+     # Pyglow directory:[m
+[31m-    pyglow_dir = os.path.join(DIR_FILE, "kpap/")[m
+[31m-[m
+[32m+[m[41m    [m
+[32m+[m[41m    [m
+[32m+[m[32m    #Aqui es SRC del NOAA[m
+     src = 'ftp://ftp.ngdc.noaa.gov/'\[m
+           + 'STP/GEOMAGNETIC_DATA/INDICES/KP_AP/%4i' % (year,)[m
+[31m-[m
+[31m-    des = pyglow_dir + "%4i" % (year,)[m
+[32m+[m[41m  [m
+[32m+[m[32m    #Aqui es SRC del gfz[m
+[32m+[m[32m    src_gfz="ftp://ftp.gfz-potsdam.de/pub/home/obs/Kp_ap_Ap_SN_F107/"\[m
+[32m+[m[32m            + "Kp_ap_Ap_SN_F107_%4i.txt" %(year)[m
+[32m+[m[41m    [m
+[32m+[m[32m    if(year>=2018):[m
+[32m+[m[32m        pyglow_dir = os.path.join(DIR_FILE, "kpap/")[m
+[32m+[m[32m        des = pyglow_dir + "%4i.txt" % (year,)[m
+[32m+[m[32m        src=src_gfz[m
+[32m+[m[32m    else:[m
+[32m+[m[32m        pyglow_dir = os.path.join(DIR_FILE, "kpap/")[m
+[32m+[m[32m        des = pyglow_dir + "%4i" % (year,)[m
+     print("\nDownloading\n{src}\nto\n{des}".format(src=src, des=des))[m
+     try:[m
+         with contextlib.closing(urllib.request.urlopen(src)) as r:[m
+[36m@@ -206,53 +217,3 @@[m [mdef update_indices(year0, year1=None):[m
+     return[m
+ [m
+ [m
+[31m-def check_stored_indices(date0, date1):[m
+[31m-    """[m
+[31m-    Helper function to determine which dates do not have indices[m
+[31m-[m
+[31m-    :param date0: String start date[m
+[31m-    :param date1: String end date[m
+[31m-    """[m
+[31m-[m
+[31m-    # Parse input dates:[m
+[31m-    dn0 = dateutil.parser.parse(date0)[m
+[31m-    dn1 = dateutil.parser.parse(date1)[m
+[31m-[m
+[31m-    # Find date range:[m
+[31m-    dns = [dn0 + timedelta(days=kk) for kk in range((dn1-dn0).days)][m
+[31m-[m
+[31m-    print("Checking: input date range:")[m
+[31m-    print("  {}".format(dn0.strftime("%Y-%m-%d")))[m
+[31m-    print("  to")[m
+[31m-    print("  {}".format(dn1.strftime("%Y-%m-%d")))[m
+[31m-[m
+[31m-    have_all = True[m
+[31m-    for dn in dns:[m
+[31m-[m
+[31m-        # Instantiate indice class:[m
+[31m-        indice = Indice(dn)[m
+[31m-[m
+[31m-        # Find the indices:[m
+[31m-        indice.run()[m
+[31m-[m
+[31m-        # Are all the indices NaN?[m
+[31m-        if indice.all_nan():[m
+[31m-            status = "--- FAIL ---"[m
+[31m-            failed = True[m
+[31m-            have_all = False[m
+[31m-        else:[m
+[31m-            failed = False[m
+[31m-            status = "OK"[m
+[31m-[m
+[31m-        # Report:[m
+[31m-        if failed:[m
+[31m-            print("{}: {}".format(dn.strftime("%Y-%m-%d"), status))[m
+[31m-[m
+[31m-    # Report only if there were no issues:[m
+[31m-    if have_all:[m
+[31m-        print([m
+[31m-            ">> We have all of the geophysical indices files between these "[m
+[31m-            "dates."[m
+[31m-        )[m
+[31m-[m
+[31m-    return[m
+[1mdiff --git a/src/pyglow/pyglow.py b/src/pyglow/pyglow.py[m
+[1mindex 398fe26..dce6dd2 100644[m
+[1m--- a/src/pyglow/pyglow.py[m
+[1m+++ b/src/pyglow/pyglow.py[m
+[36m@@ -23,7 +23,7 @@[m [mfrom . import generate_kpap[m
+ # Code version:[m
+ __version__ = constants.VERSION[m
+ [m
+[31m-[m
+[32m+[m[32mfrom copy import deepcopy[m
+ class Point(object):[m
+ [m
+     def __init__([m
+[36m@@ -33,6 +33,7 @@[m [mclass Point(object):[m
+         lon,[m
+         alt,[m
+         user_ind=False,[m
+[32m+[m[32m        version=2016[m
+     ):[m
+         """[m
+         An instance of Point is the fundamental data object[m
+[36m@@ -52,12 +53,13 @@[m [mclass Point(object):[m
+         """[m
+ [m
+         nan = float('nan')[m
+[32m+[m[32m        self.version=version[m
+        [m
+         # Record input:[m
+         self.dn = dn[m
+         self.lat = lat[m
+         self.lon = lon[m
+[31m-        self.alt = alt[m
+[32m+[m[32m        self.alt = deepcopy(alt)[m
+ [m
+         # Error if date is too early:[m
+         if self.dn.year < 1932:[m
+[36m@@ -128,12 +130,43 @@[m [mclass Point(object):[m
+         # For run_airglow:[m
+         self.ag6300 = nan[m
+         self.ag7774 = nan[m
+[31m-[m
+[32m+[m[41m        [m
+[32m+[m[32m        #Arrays[m
+[32m+[m[41m        [m
+[32m+[m[32m        self.ne_array=[][m
+[32m+[m[41m        [m
+[32m+[m[32m        self.check_type_element(self.alt)[m
+         return[m
+     [m
+     [m
+[31m-    def remake_table_kp_ap(self):[m
+[31m-         generate_kpap.fetch()[m
+[32m+[m[32m    def check_type_element(self,alt):[m
+[32m+[m[41m    [m
+[32m+[m[32m         diccionario=["numpy.ndarray","int","float","list"][m
+[32m+[m[32m         vector=deepcopy(alt)[m
+[32m+[m[32m         type_element=str(type(alt))[m
+[32m+[m
+[32m+[m[32m         for valor in vector:[m
+[32m+[m[41m             [m
+[32m+[m[32m                   self.alt=valor[m
+[32m+[m[32m                   self.location_time = LocationTime(self.dn,[m[41m [m
+[32m+[m[32m                                                     self.lat,[m[41m [m
+[32m+[m[32m                                                     self.lon,[m[41m [m
+[32m+[m[32m                                                     self.alt)[m
+[32m+[m[32m                   self.run_iri(self.version)[m
+[32m+[m[41m               [m
+[32m+[m[32m                   self.ne_array.append(self.ne)[m
+[32m+[m[41m                    [m
+[32m+[m
+[32m+[m[41m            [m
+[32m+[m[41m         [m
+[32m+[m[41m                 [m
+[32m+[m[32m    def get_Ne_array(self):[m
+[32m+[m[32m        return self.ne_array[m[41m         [m
+[32m+[m[41m             [m
+[32m+[m[32m    def get_Ne_number(self):[m
+[32m+[m[32m       return self.ne[m
+[32m+[m[41m                         [m
+[32m+[m[41m                         [m
+ [m
+     def __str__(self):[m
+         """ String representation of pyglow class """[m
