@@ -12,3 +12,4 @@ from .indice_maintenance import update_indices  # noqa F401
 from .geophysical_indices import check_stored_indices  # noqa F401
 from .indice_maintenance import actualizar_tablas
 from .generate_kpap import get_last_value,save_last_value,fetch
+from .keys import *
