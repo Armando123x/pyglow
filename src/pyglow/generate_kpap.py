@@ -11,7 +11,7 @@ import os
 from numpy import nanmean
 import sys
 import glob
-from keys import * 
+from .keys import * 
 from pathlib import Path
 
 """
