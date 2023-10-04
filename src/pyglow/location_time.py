@@ -26,7 +26,7 @@ class LocationTime(object):
             self.utc_hour = dn.hour
 
             # Solar local time hour:
-            if self.lat is not None:
+            if self._lon is not None:
                 self.slt_hour = np.mod(self.utc_sec/3600. + self._lon/15., 24)
 
             # Integer year and doy, e.g. 2018039
@@ -68,7 +68,7 @@ class LocationTime(object):
         
         
         #operaciones 
-        if self._dn is not None:
+        if self._lon is not None:
             self.slt_hour = np.mod(self.utc_sec/3600. + self._lon/15., 24)
 
 
