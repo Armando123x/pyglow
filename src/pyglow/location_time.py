@@ -58,8 +58,8 @@ class LocationTime(object):
         return self._lon
     
     @lon.setter
-    def lat(self,valor):
-        self._lat=valor
+    def lon(self,valor):
+        self._lon=valor
         #operaciones 
         self.year = self._dn.year
         self.doy  = self._dn.timetuple().tm_day
@@ -70,6 +70,9 @@ class LocationTime(object):
         #operaciones 
         if self._dn is not None:
             self.slt_hour = np.mod(self.utc_sec/3600. + self._lon/15., 24)
+
+
+    
         
             
         
