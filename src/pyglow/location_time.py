@@ -60,6 +60,12 @@ class LocationTime(object):
     @lon.setter
     def lat(self,valor):
         self._lat=valor
+        #operaciones 
+        self.year = self._dn.year
+        self.doy  = self._dn.timetuple().tm_day
+        self.utc_sec = self._dn.hour*3600. + self._dn.minute*60
+        self.utc_hour = self._dn.hour
+        
         
         #operaciones 
         if self._dn is not None:
