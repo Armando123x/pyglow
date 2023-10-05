@@ -42,7 +42,7 @@ class LocationTime(object):
         self._dn = valor
         #operaciones 
         self.year = self._dn.year
-        self.doy  = self._dn.timetuple().tm_day
+        self.doy  = self._dn.timetuple().tm_yday
         self.utc_sec = self._dn.hour*3600. + self._dn.minute*60
         self.utc_hour = self._dn.hour
         
