@@ -93,5 +93,5 @@ def get_kpap(GEOPHYSICAL_INDICES,dn):
     obj.daily_kp = daily_kp
     obj.dst = dst
     obj.ae = ae
-    return kp, ap, f107, f107a, f107p, daily_kp, daily_ap, dst, ae
-    #return obj
+    #return kp, ap, f107, f107a, f107p, daily_kp, daily_ap, dst, ae
+    return obj
