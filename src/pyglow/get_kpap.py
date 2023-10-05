@@ -78,8 +78,8 @@ def get_kpap(GEOPHYSICAL_INDICES,dn):
             self.f107 = None
             self.f107a = None
             self.f107p = None
-            self.daily_kp = None
-            self.daily_ap = None
+            self.kp_daily = None
+            self.ap_daily = None
             self.dst = None
             self.ae = None
 
@@ -89,8 +89,8 @@ def get_kpap(GEOPHYSICAL_INDICES,dn):
     obj.f107 = f107
     obj.f107a = f107a
     obj.f107p = f107p
-    obj.daily_ap = daily_ap
-    obj.daily_kp = daily_kp
+    obj.ap_daily = daily_ap
+    obj.kp_daily = daily_kp
     obj.dst = dst
     obj.ae = ae
     #return kp, ap, f107, f107a, f107p, daily_kp, daily_ap, dst, ae
