@@ -183,7 +183,8 @@ class Point(object):
         
    
     def run(self):
-    
+        self.ne_array = list()
+        
         if self.alt is not None :
  
             if isinstance(self.alt, int) or isinstance(self.alt,float):
