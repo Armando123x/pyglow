@@ -57,19 +57,18 @@ class Indice(object):
         # Geophysical indices:
        
         
-        kp, ap, f107, f107a, f107p, kp_daily, ap_daily, dst, ae = \
-            get_kpap(self.GEOPHYSICAL_INDICES,self.dn)
+        obj = get_kpap(self.GEOPHYSICAL_INDICES,self.dn)
 
         # Assign to member variables:
-        self.kp = kp
-        self.ap = ap
-        self.f107 = f107
-        self.f107a = f107a
-        self.f107p = f107p
-        self.kp_daily = kp_daily
-        self.ap_daily = ap_daily
-        self.dst = dst
-        self.ae = ae
+        self.kp = obj.kp
+        self.ap = obj.ap
+        self.f107 = obj.f107
+        self.f107a = obj.f107a
+        self.f107p = obj.f107p
+        self.kp_daily = obj.kp_daily
+        self.ap_daily = obj.ap_daily
+        self.dst = obj.dst
+        self.ae = obj.ae
 
         # AP values for MSIS:
         self.apmsis = get_apmsis(self.dn)
