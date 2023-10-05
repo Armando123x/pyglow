@@ -47,7 +47,7 @@ def get_apmsis(dn):
     # (1) DAILY AP
  
     struct = get_kpap(GEOPHYSICAL_INDICES,dn=dn)
-    out[0] = struct.daily_ap
+    out[0] = struct.ap_daily
 
     # (2) 3 HR AP INDEX FOR CURRENT TIME
     out[1] = struct.ap
